@@ -5,6 +5,7 @@ import spark.Session;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -14,7 +15,7 @@ public class Main {
         HashMap<String, User> users = new HashMap<>();
         ArrayList<Message> messages = new ArrayList<>();
 
-        addTestMessages(users);
+        addTestUsers(users);
         addTestMessages(messages);
 
         Spark.get(
@@ -34,6 +35,31 @@ public class Main {
                     m.put("threads", threads);  // Adding only top level threads
                     m.put("username", username);
                     return new ModelAndView(m, "threads.html");
+                }),
+                new MustacheTemplateEngine()
+        );
+
+        Spark.get(
+                "/replies",
+                ((request, response) -> {
+                    HashMap m = new HashMap();
+
+                    String id = request.queryParams("id");
+                    try {
+                        int idNum = Integer.valueOf(id);
+                        Message message = messages.get(idNum);
+                        m.put("message", message);
+
+                        ArrayList<Message> replies = new ArrayList<>();
+                        for (Message msg : messages) {
+                            if (msg.replyId == message.id) {
+                                replies.add(msg);
+                            }
+                        }
+                    } catch (Exception e) {
+
+                    }
+                    return new ModelAndView(m, "replies.html");
                 }),
                 new MustacheTemplateEngine()
         );
